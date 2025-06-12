@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Analysis API - Multiple Linear Regression</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+        
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        input, textarea, button {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 10px 0;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .btn-demo {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+        
+        .results {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #27ae60;
+            margin-top: 20px;
+        }
+        
+        .results h3 {
+            color: #27ae60;
+            margin-bottom: 15px;
+        }
+        
+        .metric {
+            display: inline-block;
+            background: #ecf0f1;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+        
+        .plot-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .plot-container img {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+        }
+        
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .info-box {
+            background: #d5dbdb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Data Analysis API</h1>
+            <p>Multiple Linear Regression Analysis Tool</p>
+        </div>
+        
+        <div class="content">
+            <!-- Demo Section -->
+            <div class="section">
+                <h2>🚀 Quick Demo</h2>
+                <div class="info-box">
+                    <strong>Try it out!</strong> Click the button below to see a demo with pre-generated data and automatic regression analysis.
+                </div>
+                <button class="btn-demo" onclick="runDemo()">Run Demo Analysis</button>
+            </div>
+            
+            <!-- Data Generation Section -->
+            <div class="section">
+                <h2>🎲 Generate Sample Data</h2>
+                <div class="form-group">
+                    <label for="samples">Number of Samples:</label>
+                    <input type="number" id="samples" value="100" min="10" max="1000">
+                </div>
+                <div class="form-group">
+                    <label for="features">Number of Features:</label>
+                    <input type="number" id="features" value="2" min="1" max="10">
+                </div>
+                <div class="form-group">
+                    <label for="noise">Noise Level:</label>
+                    <input type="number" id="noise" value="0.1" min="0" max="1" step="0.1">
+                </div>
+                <button onclick="generateData()">Generate Data</button>
+            </div>
+            
+            <!-- Manual Data Input Section -->
+            <div class="section">
+                <h2>📝 Manual Data Input</h2>
+                <div class="info-box">
+                    Enter your data in JSON format. X should be a 2D array (samples x features), y should be a 1D array.
+                </div>
+                <div class="form-group">
+                    <label for="dataX">Independent Variables (X):</label>
+                    <textarea id="dataX" rows="6" placeholder='[[1, 2], [3, 4], [5, 6]]'></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="dataY">Dependent Variable (y):</label>
+                    <textarea id="dataY" rows="3" placeholder='[10, 20, 30]'></textarea>
+                </div>
+                <button onclick="analyzeData()">Analyze Data</button>
+            </div>
+            
+            <!-- Results Section -->
+            <div id="results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            const config = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            };
+            
+            if (data) {
+                config.body = JSON.stringify(data);
+            }
+            
+            const response = await fetch(`${API_BASE}${endpoint}`, config);
+            return await response.json();
+        }
+        
+        function showLoading() {
+            document.getElementById('results').innerHTML = '<div class="loading">🔄 Processing...</div>';
+            document.getElementById('results').style.display = 'block';
+        }
+        
+        function showError(message) {
+            document.getElementById('results').innerHTML = `<div class="error">❌ Error: ${message}</div>`;
+            document.getElementById('results').style.display = 'block';
+        }
+        
+        function showResults(data) {
+            const results = data.regression_results || data;
+            let html = `
+                <div class="results">
+                    <h3>📈 Regression Analysis Results</h3>
+                    <div style="margin: 15px 0;">
+                        <div class="metric">Intercept: ${results.intercept?.toFixed(4) || 'N/A'}</div>
+                        <div class="metric">R²: ${results.r_squared?.toFixed(4) || 'N/A'}</div>
+                        <div class="metric">Samples: ${results.n_samples || 'N/A'}</div>
+                        <div class="metric">Features: ${results.n_features || 'N/A'}</div>
+                    </div>
+            `;
+            
+            if (results.coefficients) {
+                html += '<h4>Feature Coefficients:</h4><div>';
+                results.coefficients.forEach((coef, idx) => {
+                    html += `<div class="metric">Feature ${idx + 1}: ${coef.toFixed(4)}</div>`;
+                });
+                html += '</div>';
+            }
+            
+            if (data.summary) {
+                html += `
+                    <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <strong>Model Performance:</strong> ${data.summary.model_performance}<br>
+                        <strong>Interpretation:</strong> ${data.summary.interpretation}
+                    </div>
+                `;
+            }
+            
+            if (data.plot_image) {
+                html += `
+                    <div class="plot-container">
+                        <h4>📊 Visualization</h4>
+                        <img src="${data.plot_image}" alt="Regression Analysis Plots">
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            
+            document.getElementById('results').innerHTML = html;
+            document.getElementById('results').style.display = 'block';
+        }
+        
+        async function runDemo() {
+            showLoading();
+            try {
+                const data = await apiCall('/demo');
+                showResults(data);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+        
+        async function generateData() {
+            showLoading();
+            try {
+                const samples = parseInt(document.getElementById('samples').value);
+                const features = parseInt(document.getElementById('features').value);
+                const noise = parseFloat(document.getElementById('noise').value);
+                
+                const data = await apiCall('/generate-data', 'POST', {
+                    n_samples: samples,
+                    n_features: features,
+                    noise_level: noise
+                });
+                
+                // Auto-fill the data inputs
+                document.getElementById('dataX').value = JSON.stringify(data.X);
+                document.getElementById('dataY').value = JSON.stringify(data.y);
+                
+                // Auto-analyze the generated data
+                const analysisData = await apiCall('/regression-with-plots', 'POST', {
+                    X: data.X,
+                    y: data.y
+                });
+                
+                showResults(analysisData);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+        
+        async function analyzeData() {
+            showLoading();
+            try {
+                const X = JSON.parse(document.getElementById('dataX').value);
+                const y = JSON.parse(document.getElementById('dataY').value);
+                
+                const data = await apiCall('/regression-with-plots', 'POST', { X, y });
+                showResults(data);
+            } catch (error) {
+                showError('Invalid data format or analysis error: ' + error.message);
+            }
+        }
+        
+        // Initialize with demo data in the input fields
+        window.onload = function() {
+            document.getElementById('dataX').value = '[[1, 2], [2, 3], [3, 4], [4, 5], [5, 6]]';
+            document.getElementById('dataY').value = '[10, 15, 20, 25, 30]';
+        };
+    </script>
+</body>
+</html>
