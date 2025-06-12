@@ -17,7 +17,7 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to Data API Server"}
+    return {"message": "Welcome to Data API Server", "version": "1.0.1"}
 
 @app.get("/health")
 async def health_check():
